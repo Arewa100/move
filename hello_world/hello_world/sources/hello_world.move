@@ -13,7 +13,7 @@ public fun print_value(): u16 {
 
 public fun expressing_casting(): u16 {
     let value: u8 = 12;
-    let result: u16 = value as u16;
+    let result: u16 = value as u16; //this is called casting of one value or type to another 
     result
 }
 public fun print_hello_world(): String {
