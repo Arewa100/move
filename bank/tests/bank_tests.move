@@ -58,6 +58,8 @@ fun testing_the_address_data_type() {
 #[test]
 fun test_to_create_vectors() {
    let list_of_names: vector<String> = vector[b"ola".to_string(), b"miracle".to_string(), b"ope".to_string()];
-   debug::print<vector<String>(&list_of_names);
+   debug::print<vector<String>>(&list_of_names);
+   assert!(list_of_names != vector::empty(), 0);
 }
+
 }
