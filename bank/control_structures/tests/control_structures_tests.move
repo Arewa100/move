@@ -12,4 +12,20 @@ module control_structures::control_structures_tests {
         debug::print<String>(&b"age is greater than height".to_string());
         assert!(age < height == true, 0);
     }
+
+    #[test]
+    fun test_that_iteration() {
+        let mut count = 1;
+        while (count <= 10) {
+            debug::print<u8>(&count);
+            count = count + 1;
+        }
+
+    }
+
+    
+    #[test]
+    fun test_to_veryify_structs() {
+
+    }
 }
