@@ -2,8 +2,6 @@ module move_expressions::move_expressions {
 use std::string::String;
 
 
-
-
 public fun print_name(): String {
     b"Miracle".to_string()
 }
