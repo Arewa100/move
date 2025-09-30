@@ -1,14 +1,11 @@
-// First, let's fix your main todolist module
+// Fixed todolist module - completely clean imports
 module todolist::todolist {
     use std::string::String;
     use sui::event;
-    use sui::object::{Self, UID};
-    use sui::tx_context::{Self, TxContext};
-    use sui::transfer;
 
     // Define the Task struct
     public struct Task has key, store {
-        id: UID,
+        id: sui::object::UID,
         title: String,
         content: String,
         created_at: u64,
@@ -16,16 +13,38 @@ module todolist::todolist {
 
     // Event for task creation
     public struct TaskCreationResponse has copy, drop {
-        message: vector<u8>, // Changed from String to vector<u8> to match your emit
+        message: vector<u8>,
         task_id: address,
         timestamp: u64,
     }
 
-    // Add task function
-    public entry fun add_task(title: String, content: String, ctx: &mut TxContext) {
-        let task_id = object::new(ctx);
-        let task_address = object::uid_to_address(&task_id);
-        let current_time = tx_context::epoch(ctx);
+    // TodoList struct to track the owner's todo list
+    public struct TodoList has key {
+        id: sui::object::UID,
+        tasks_created: u64, // Fixed typo: was "task_created"
+    }
+
+    // Init function - runs once when module is deployed
+    fun init(ctx: &mut sui::tx_context::TxContext) {
+        let todo_list = TodoList {
+            id: sui::object::new(ctx),
+            tasks_created: 0,
+        };
+
+        // Transfer to the publisher (deployer) of the module
+        sui::transfer::transfer(todo_list, sui::tx_context::sender(ctx));
+    }
+    
+    // Add task function - now updates the TodoList counter
+    public entry fun add_task(
+        todo_list: &mut TodoList, // Take TodoList as parameter
+        title: String, 
+        content: String, 
+        ctx: &mut sui::tx_context::TxContext
+    ) {
+        let task_id = sui::object::new(ctx);
+        let task_address = sui::object::uid_to_address(&task_id);
+        let current_time = sui::tx_context::epoch(ctx);
 
         let new_task = Task {
             id: task_id,
@@ -34,6 +53,9 @@ module todolist::todolist {
             created_at: current_time,
         };
 
+        // Update the task counter
+        todo_list.tasks_created = todo_list.tasks_created + 1;
+
         event::emit(TaskCreationResponse {
             message: b"task created successfully",
             task_id: task_address,
@@ -41,7 +63,7 @@ module todolist::todolist {
         });
 
         // Transfer the task to the sender
-        transfer::public_transfer(new_task, tx_context::sender(ctx));
+        sui::transfer::public_transfer(new_task, sui::tx_context::sender(ctx));
     }
 
     // View functions for testing
@@ -50,14 +72,16 @@ module todolist::todolist {
     }
 
     public fun get_task_id_address(task: &Task): address {
-        object::uid_to_address(&task.id)
+        sui::object::uid_to_address(&task.id)
     }
 
-    // Test-only initialization function (if needed for platform setup)
+    public fun get_tasks_created(todo_list: &TodoList): u64 {
+        todo_list.tasks_created
+    }
+
+    // Test-only initialization function
     #[test_only]
-    public fun init_for_testing(ctx: &mut TxContext) {
-        // Initialize any platform-specific objects if needed
-        // For now, this todolist doesn't need platform initialization
+    public fun init_for_testing(ctx: &mut sui::tx_context::TxContext) {
+        init(ctx);
     }
 }
-
